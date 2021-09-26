@@ -8,40 +8,61 @@ etahat,etahatvar,thetahat,thetahatvar, ldlsignal,zorig, zorigtv,aug,state,dist,s
 
     integer, intent(in) :: d, j, p, r, m, n,aug,state,dist,signal,ldlsignal,zorigtv
     integer :: t, i, k1, k2
-    integer, intent(in), dimension(n,p) :: ymiss
+    integer, intent(in), dimension(:,:) :: ymiss
+    !f2py depend(p) dimension(n,p)
     integer, intent(in), dimension(5) :: timevar
-    double precision, intent(in), dimension(p,m,(n-1)*timevar(1)+1) :: zt
-    double precision, intent(in), dimension(p,p,(n-1)*timevar(2)+1) :: ht
-    double precision, intent(in), dimension(m,m,(n-1)*timevar(3)+1) :: tt
-    double precision, intent(in), dimension(m,r,(n-1)*timevar(4)+1) :: rtv
-    double precision, intent(in), dimension(r,r,(n-1)*timevar(5)+1) :: qt
+    double precision, intent(in), dimension(:,:,:) :: zt
+    !f2py depend(timevar) dimension(p,m,(n-1)*timevar(1)+1)
+    double precision, intent(in), dimension(:,:,:) :: ht
+    !f2py depend(timevar) dimension(p,p,(n-1)*timevar(2)+1)
+    double precision, intent(in), dimension(:,:,:) :: tt
+    !f2py depend(timevar) dimension(m,m,(n-1)*timevar(3)+1)
+    double precision, intent(in), dimension(:,:,:) :: rtv
+    !f2py depend(timevar) dimension(m,r,(n-1)*timevar(4)+1)
+    double precision, intent(in), dimension(:,:,:) :: qt
+    !f2py depend(timevar) dimension(r,r,(n-1)*timevar(5)+1)
     double precision, intent(in), dimension(m,n+1) :: at
     double precision, intent(in), dimension(m,m,n+1) :: pt
-    double precision, intent(in), dimension(p,n) ::  vt,ft
-    double precision, intent(in), dimension(m,p,n) :: kt
+    double precision, intent(in), dimension(:,:) ::  vt,ft
+    !f2py depend(p) dimension(p,n)
+    double precision, intent(in), dimension(:,:,:) :: kt
+    !f2py depend(p) dimension(m,p,n)
     double precision, intent(in), dimension(m,m,d+1) ::  pinf
-    double precision, intent(in),dimension(m,p,d) ::  kinf
-    double precision, intent(in), dimension(p,d) ::  finf
+    double precision, intent(in),dimension(:,:,:) ::  kinf
+    !f2py depend(p) dimension(m,p,d)
+    double precision, intent(in), dimension(:,:) ::  finf
+    !f2py depend(p) dimension(p,d)
     double precision, intent(inout), dimension(m,m,n+1) :: nt !n_1 = n_0, ..., n_201 = n_200
     double precision, intent(inout), dimension(m,n+1) :: rt !same as n, r_1 = r_0 etc.
     double precision, intent(inout), dimension(m,d+1) :: rt0,rt1
     double precision, intent(inout), dimension(m,m,d+1) :: nt0,nt1,nt2
-    double precision, intent(inout), dimension(m*state,n*state) :: ahat
+    double precision, intent(inout), dimension(:,:) :: ahat
+    !f2py depend(state) dimension(m*state,n*state)
     double precision, intent(inout), dimension(m,m,n) :: vvt
-    double precision, intent(inout), dimension(p*dist*aug,n*dist*aug) :: epshat
-    double precision, intent(inout), dimension(p*dist*aug,n*dist*aug) :: epshatvar
-    double precision, intent(inout), dimension(r*dist,n*dist) :: etahat
-    double precision, intent(inout), dimension(r*dist,r*dist,n*dist) :: etahatvar
-    double precision, intent(inout), dimension(p*signal,n*signal) :: thetahat
-    double precision, intent(inout), dimension(p*signal,p*signal,n*signal) :: thetahatvar
-    double precision, intent(in), dimension(ldlsignal*p,ldlsignal*m,ldlsignal*((n-1)*zorigtv+1)) :: zorig
+    double precision, intent(inout), dimension(:,:) :: epshat
+    !f2py depend(p) dimension(p*dist*aug,n*dist*aug)
+    double precision, intent(inout), dimension(:,:) :: epshatvar
+    !f2py depend(p) dimension(p*dist*aug,n*dist*aug)
+    double precision, intent(inout), dimension(:,:) :: etahat
+    !f2py depend(dist) dimension(r*dist,n*dist)
+    double precision, intent(inout), dimension(:,:,:) :: etahatvar
+    !f2py depend(dist) dimension(r*dist,r*dist,n*dist)
+    double precision, intent(inout), dimension(:,:) :: thetahat
+    !f2py depend(p) dimension(p*signal,n*signal)
+    double precision, intent(inout), dimension(:,:,:) :: thetahatvar
+    !f2py depend(p) dimension(p*signal,p*signal,n*signal)
+    double precision, intent(in), dimension(:,:,:) :: zorig
+    !f2py depend(p) dimension(ldlsignal*p,ldlsignal*m,ldlsignal*((n-1)*zorigtv+1))
     double precision, dimension(m,m) :: linf,l0
     double precision, dimension(m,m) :: nrec,nrec1,nrec2,im,mm,mm2
     double precision, dimension(m) :: rrec,rrec1,rhelp, help
     double precision, dimension(m,r) :: mr, mr2
     double precision, dimension(p,m) :: pm
+    !f2py depend(p) dimension(p,m)
     double precision, dimension(p,n) ::  ftinv
+    !f2py depend(p) dimension(p,n)
     double precision, dimension(p,d) ::  finfinv
+    !f2py depend(p) dimension(p,d)
     double precision, external :: ddot
     external dgemm, dsymm, dgemv, dsymv, dger
 
@@ -354,7 +375,7 @@ etahat,etahatvar,thetahat,thetahatvar, ldlsignal,zorig, zorigtv,aug,state,dist,s
             call dsymm('r','u',m,m,-1.0d0,pt(:,:,t),m,mm,m,1.0d0,vvt(:,:,t),m)
             call dsymm('l','u',m,m,1.0d0,pinf(:,:,t),m,nt1(:,:,t),m,0.0d0,mm,m)
             call dsymm('r','u',m,m,-1.0d0,pt(:,:,t),m,mm,m,0.0d0,mm2,m)
-            
+
             vvt(:,:,t) = vvt(:,:,t) + mm2 + transpose(mm2)
             call dsymm('l','u',m,m,1.0d0,pinf(:,:,t),m,nt2(:,:,t),m,0.0d0,mm,m)
             call dsymm('r','u',m,m,-1.0d0,pinf(:,:,t),m,mm,m,1.0d0,vvt(:,:,t),m)
@@ -378,13 +399,13 @@ etahat,etahatvar,thetahat,thetahatvar, ldlsignal,zorig, zorigtv,aug,state,dist,s
             call dsymm('l','u',m,m,1.0d0,pt(:,:,t),m,nt(:,:,t),m,0.0d0,mm,m)
             mm = im - mm
             call dsymm('r','u',m,m,1.0d0,pt(:,:,t),m,mm,m,0.0d0,vvt(:,:,t),m)
-            
+
             ! force symmetry
             do k1 = 1,m
               do k2 = k1,m
                 vvt(k2,k1,t) = vvt(k1,k2,t)
               end do
-            end do            
+            end do
             ! remove clear rounding errors (negative variances)
             do i=1, m
               if (vvt(i,i,t) .LE. 0) then
@@ -403,7 +424,7 @@ etahat,etahatvar,thetahat,thetahatvar, ldlsignal,zorig, zorigtv,aug,state,dist,s
             call dsymm('r','u',m,r,1.0d0,qt(:,:,(t-1)*timevar(5)+1),r,rtv(:,:,(t-1)*timevar(4)+1),m,0.0d0,mr,m)
             call dsymm('l','u',m,r,1.0d0,nt0(:,:,t+1),m,mr,m,0.0d0,mr2,m)
             call dgemm('t','n',r,r,m,-1.0d0,mr,m,mr2,m,1.0d0,etahatvar(:,:,t),r)
-            
+
             ! remove clear rounding errors (negative variances)
             do i=1, r
               if (etahatvar(i,i,t) .LE. 0) then
